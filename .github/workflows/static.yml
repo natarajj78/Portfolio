@@ -1,0 +1,45 @@
+name: Publish UX leadership portfolio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Portfolio-GitHub-Pages.zip
+      - .github/workflows/static.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Prepare verified static website
+        run: |
+          mkdir -p _site
+          unzip -q Portfolio-GitHub-Pages.zip -d _site
+          test -f _site/index.html
+          test -f _site/work/index.html
+          test -f _site/work/ebiz-mailer/index.html
+          test -f _site/work/z-gallerie/index.html
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
